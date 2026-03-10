@@ -2,13 +2,12 @@
 # Appium CI — Android + iOS in parallel
 # =============================================================================
 #
-# Runners required (self-hosted on EC2):
-#   android  →  EC2 Linux (Ubuntu 22.04, m5.large, KVM enabled)
-#               labeled: self-hosted, linux, appium-android
-#   ios      →  EC2 Mac   (mac2.metal, macOS 13+)
-#               labeled: self-hosted, macos, appium-ios
+# Android  →  GCP Compute Engine (self-hosted runner, nested KVM)
+#             Label: self-hosted, linux, appium-android
+#             One-time setup: ci/setup-android-runner-gcp.sh
 #
-# One-time EC2 setup: see ci/setup-android-runner.sh and ci/setup-ios-runner.sh
+# iOS      →  GitHub-hosted macOS runner (free for public repos)
+#             No infrastructure to manage — GitHub provides Xcode + simulators
 # =============================================================================
 
 name: Appium Tests
@@ -18,11 +17,11 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-  workflow_dispatch:       # allows manual trigger from the GitHub Actions UI
+  workflow_dispatch:
 
 jobs:
 
-  # ── Android tests (EC2 Linux + KVM) ───────────────────────────────────────
+  # ── Android tests (GCP Compute Engine, self-hosted) ────────────────────────
   android:
     name: Android Emulator Tests
     runs-on: [self-hosted, linux, appium-android]
@@ -32,7 +31,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ── Boot the emulator ──────────────────────────────────────────────────
       - name: Start Android emulator
         run: |
           export ANDROID_HOME="${ANDROID_HOME:-$HOME/android-sdk}"
@@ -49,7 +47,7 @@ jobs:
               --force
           fi
 
-          # Start headless (KVM-accelerated)
+          # Start headless with KVM acceleration
           nohup emulator \
             -avd CIDevice \
             -no-window \
@@ -66,10 +64,9 @@ jobs:
               sleep 5
             done
           '
-          adb shell input keyevent 82   # unlock screen
+          adb shell input keyevent 82
           echo "Emulator ready: $(adb devices | grep emulator)"
 
-      # ── Start Appium ───────────────────────────────────────────────────────
       - name: Start Appium server
         run: |
           export APPIUM_HOME="${APPIUM_HOME:-$HOME/.appium}"
@@ -81,7 +78,6 @@ jobs:
             --log-level warn \
             > /tmp/appium.log 2>&1 &
 
-          # Wait until ready
           timeout 30 bash -c '
             until curl -sf http://localhost:4723/status 2>/dev/null | grep -q "\"ready\":true"; do
               sleep 2
@@ -89,7 +85,6 @@ jobs:
           '
           echo "Appium ready"
 
-      # ── Run tests ──────────────────────────────────────────────────────────
       - name: Install test dependencies
         working-directory: tests
         run: npm ci
@@ -101,7 +96,6 @@ jobs:
           APPIUM_PORT: "4723"
         run: npm run test:android
 
-      # ── Cleanup ────────────────────────────────────────────────────────────
       - name: Stop Appium and emulator
         if: always()
         run: |
@@ -116,20 +110,25 @@ jobs:
           path: tests/screenshots/
           retention-days: 7
 
-  # ── iOS tests (EC2 Mac) ────────────────────────────────────────────────────
+  # ── iOS tests (GitHub-hosted macOS runner — free for public repos) ─────────
   ios:
     name: iOS Simulator Tests
-    runs-on: [self-hosted, macos, appium-ios]
+    runs-on: macos-latest
     timeout-minutes: 30
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ── Boot the simulator ─────────────────────────────────────────────────
+      - name: Install Appium and XCUITest driver
+        run: |
+          npm install -g appium
+          appium driver install xcuitest
+          echo "Appium $(appium --version) ready"
+
       - name: Start iOS Simulator
         run: |
-          # Find best available iPhone simulator
+          # Find best available iPhone simulator on this runner
           SIM_UDID=""
           for MODEL in "iPhone 16" "iPhone 15 Pro" "iPhone 15" "iPhone 14"; do
             SIM_UDID=$(xcrun simctl list devices available 2>/dev/null \
@@ -140,12 +139,11 @@ jobs:
           done
 
           if [ -z "$SIM_UDID" ]; then
-            echo "No iPhone simulator found — check Xcode runtime installations"
-            xcrun simctl list devices available
+            echo "No iPhone simulator found. Available simulators:"
+            xcrun simctl list devices available | grep iPhone
             exit 1
           fi
 
-          # Boot (no-op if already booted)
           xcrun simctl boot "$SIM_UDID" 2>/dev/null || true
 
           # Wait for boot (max 90 s)
@@ -155,14 +153,11 @@ jobs:
             done
           "
 
-          # Persist UDID for subsequent steps
           echo "IOS_UDID=$SIM_UDID" >> "$GITHUB_ENV"
-          echo "Simulator ready: $SIM_UDID"
+          echo "Simulator ready"
 
-      # ── Start Appium ───────────────────────────────────────────────────────
       - name: Start Appium server
         run: |
-          export APPIUM_HOME="${APPIUM_HOME:-$HOME/.appium}"
           nohup appium \
             --port 4723 \
             --address 127.0.0.1 \
@@ -178,7 +173,6 @@ jobs:
           '
           echo "Appium ready"
 
-      # ── Run tests ──────────────────────────────────────────────────────────
       - name: Install test dependencies
         working-directory: tests
         run: npm ci
@@ -191,7 +185,6 @@ jobs:
           IOS_UDID: ${{ env.IOS_UDID }}
         run: npm run test:ios
 
-      # ── Cleanup ────────────────────────────────────────────────────────────
       - name: Stop Appium
         if: always()
         run: pkill -f "appium" 2>/dev/null || true
@@ -204,7 +197,7 @@ jobs:
           path: tests/screenshots/
           retention-days: 7
 
-  # ── Final status badge ─────────────────────────────────────────────────────
+  # ── Final status ───────────────────────────────────────────────────────────
   report:
     name: Results
     runs-on: ubuntu-latest
@@ -213,12 +206,10 @@ jobs:
     steps:
       - name: Check results
         run: |
-          ANDROID="${{ needs.android.result }}"
-          IOS="${{ needs.ios.result }}"
-          echo "Android: $ANDROID"
-          echo "iOS:     $IOS"
-          if [[ "$ANDROID" != "success" || "$IOS" != "success" ]]; then
-            echo "One or more test jobs failed."
+          echo "Android: ${{ needs.android.result }}"
+          echo "iOS:     ${{ needs.ios.result }}"
+          if [[ "${{ needs.android.result }}" != "success" || "${{ needs.ios.result }}" != "success" ]]; then
+            echo "One or more jobs failed."
             exit 1
           fi
           echo "All tests passed."
