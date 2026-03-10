@@ -187,10 +187,12 @@ jobs:
             > /tmp/appium.log 2>&1 &
 
           # Wait for Appium — counter loop (no 'timeout' on macOS)
-          MAX=15 ELAPSED=0   # 15 × 2 s = 30 s max
+          MAX=30 ELAPSED=0   # 30 × 2 s = 60 s max
           until curl -sf http://localhost:4723/status 2>/dev/null | grep -q '"ready":true'; do
             if [ "$ELAPSED" -ge "$MAX" ]; then
-              echo "Appium did not start within 30 s"; cat /tmp/appium.log; exit 1
+              echo "Appium did not start within 60 s"
+              cat /tmp/appium.log
+              exit 1
             fi
             sleep 2; ELAPSED=$((ELAPSED + 1))
           done
