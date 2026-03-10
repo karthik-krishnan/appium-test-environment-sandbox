@@ -164,12 +164,14 @@ jobs:
 
           xcrun simctl boot "$SIM_UDID" 2>/dev/null || true
 
-          # Wait for boot (max 90 s)
-          timeout 90 bash -c "
-            until xcrun simctl list devices booted 2>/dev/null | grep -q '$SIM_UDID'; do
-              sleep 3
-            done
-          "
+          # Wait for boot — macOS has no 'timeout' command; use a counter loop
+          MAX=30 ELAPSED=0   # 30 × 3 s = 90 s max
+          until xcrun simctl list devices booted 2>/dev/null | grep -q "$SIM_UDID"; do
+            if [ "$ELAPSED" -ge "$MAX" ]; then
+              echo "Simulator did not boot within 90 s"; exit 1
+            fi
+            sleep 3; ELAPSED=$((ELAPSED + 1))
+          done
 
           echo "IOS_UDID=$SIM_UDID" >> "$GITHUB_ENV"
           echo "Simulator ready"
@@ -184,11 +186,14 @@ jobs:
             --log-level warn \
             > /tmp/appium.log 2>&1 &
 
-          timeout 30 bash -c '
-            until curl -sf http://localhost:4723/status 2>/dev/null | grep -q "\"ready\":true"; do
-              sleep 2
-            done
-          '
+          # Wait for Appium — counter loop (no 'timeout' on macOS)
+          MAX=15 ELAPSED=0   # 15 × 2 s = 30 s max
+          until curl -sf http://localhost:4723/status 2>/dev/null | grep -q '"ready":true'; do
+            if [ "$ELAPSED" -ge "$MAX" ]; then
+              echo "Appium did not start within 30 s"; cat /tmp/appium.log; exit 1
+            fi
+            sleep 2; ELAPSED=$((ELAPSED + 1))
+          done
           echo "Appium ready"
 
       - name: Install test dependencies
