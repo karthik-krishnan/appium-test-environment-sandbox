@@ -128,7 +128,7 @@ ok "AVD 'CIDevice' created"
 # =============================================================================
 info "Step 4/6 — Appium + UIAutomator2 driver"
 # =============================================================================
-npm install -g appium --silent
+sudo npm install -g appium --silent
 export APPIUM_HOME="$HOME/.appium"
 appium driver install uiautomator2 2>&1 | tail -3
 ok "Appium $(appium --version) with uiautomator2 driver installed"
