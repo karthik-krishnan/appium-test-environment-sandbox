@@ -13,10 +13,6 @@
 name: Appium Tests
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
     inputs:
       platform:
@@ -52,9 +48,8 @@ jobs:
 
           # Create AVD if it doesn't exist yet
           if ! emulator -list-avds 2>/dev/null | grep -q "CIDevice"; then
-            echo "no" | avdmanager \
-              --sdk_root="$ANDROID_HOME" \
-              create avd \
+            export ANDROID_SDK_ROOT="$ANDROID_HOME"
+            echo "no" | avdmanager create avd \
               --name "CIDevice" \
               --package "system-images;android-36;google_apis;arm64-v8a" \
               --device "pixel_6" \
