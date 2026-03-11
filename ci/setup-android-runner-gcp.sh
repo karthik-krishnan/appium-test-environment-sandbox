@@ -85,9 +85,10 @@ mkdir -p "$ANDROID_HOME/cmdline-tools"
 wget -q \
   "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip" \
   -O /tmp/cmdline-tools.zip
+rm -rf /tmp/cmdline-tools-extract
 unzip -q /tmp/cmdline-tools.zip -d /tmp/cmdline-tools-extract
-mkdir -p "$ANDROID_HOME/cmdline-tools/latest"
-mv /tmp/cmdline-tools-extract/cmdline-tools/* "$ANDROID_HOME/cmdline-tools/latest/"
+rm -rf "$ANDROID_HOME/cmdline-tools/latest"
+mv /tmp/cmdline-tools-extract/cmdline-tools "$ANDROID_HOME/cmdline-tools/latest"
 rm -rf /tmp/cmdline-tools.zip /tmp/cmdline-tools-extract
 
 # Persist environment across sessions
