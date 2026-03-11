@@ -114,9 +114,9 @@ sdkmanager --sdk_root="$ANDROID_HOME" \
 ok "Android SDK installed at $ANDROID_HOME"
 
 # Pre-create the AVD used by the CI workflow
-echo "no" | avdmanager \
-  --sdk_root="$ANDROID_HOME" \
-  create avd \
+# avdmanager picks up ANDROID_SDK_ROOT / ANDROID_HOME from the environment
+export ANDROID_SDK_ROOT="$ANDROID_HOME"
+echo "no" | avdmanager create avd \
   --name "CIDevice" \
   --package "${ANDROID_SYSTEM_IMAGE}" \
   --device "pixel_6" \
