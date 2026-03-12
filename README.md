@@ -63,6 +63,8 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 When prompted, type `Y` and press Enter. You only need to do this once — it allows locally created scripts to run while still blocking untrusted scripts from the internet.
 
+> **Already have Git installed?** If you have [Git for Windows](https://git-scm.com/download/win) installed, you can skip steps 3 and 4 entirely. Right-click in the repo folder, choose **Git Bash Here**, and run `bash local-setup.sh` exactly like on macOS.
+
 ---
 
 ## Start the Environment
