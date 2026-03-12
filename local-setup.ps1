@@ -136,10 +136,30 @@ if (-not $cmdlineToolsDir) {
         Select-Object -First 1 | ForEach-Object { $_.DirectoryName }
 }
 
-$env:Path = "$emulatorDir;$platformToolsDir;$cmdlineToolsDir;$env:Path"
+# -- JAVA_HOME: use Android Studio's bundled JDK if JAVA_HOME not already set --
+if (-not $env:JAVA_HOME) {
+    $javaHomeCandidates = @(
+        "C:\Program Files\Android\Android Studio\jbr",
+        "C:\Program Files\Android\Android Studio\jre"
+    )
+    foreach ($candidate in $javaHomeCandidates) {
+        if (Test-Path (Join-Path $candidate "bin\java.exe")) {
+            $env:JAVA_HOME = $candidate
+            break
+        }
+    }
+    if (-not $env:JAVA_HOME) {
+        Write-Err "JAVA_HOME is not set and Android Studio's bundled JDK was not found."
+        Write-Info "Please install Android Studio and ensure it has finished its first-launch setup."
+        Write-Info "Or install JDK manually: https://adoptium.net"
+        exit 1
+    }
+}
+$env:Path = "$env:JAVA_HOME\bin;$emulatorDir;$platformToolsDir;$cmdlineToolsDir;$env:Path"
 
 Write-Ok "Android Studio SDK found at $ANDROID_HOME"
-Write-Info "  emulator:     $emulatorDir"
+Write-Ok "JAVA_HOME: $env:JAVA_HOME"
+Write-Info "  emulator:       $emulatorDir"
 Write-Info "  platform-tools: $platformToolsDir"
 Write-Info "  cmdline-tools:  $cmdlineToolsDir"
 
