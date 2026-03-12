@@ -132,7 +132,7 @@ Write-Ok "Android Studio SDK found at $ANDROID_HOME"
 # =============================================================================
 Write-Step "Step 2/3 - Android emulator"
 
-$adbDevices     = & adb devices 2>$null
+$adbDevices     = & adb devices 2>&1
 $alreadyRunning = $adbDevices | Select-String "emulator.*device$"
 
 if ($alreadyRunning) {
@@ -281,7 +281,7 @@ if ($appiumReady) {
 # =============================================================================
 # DONE
 # =============================================================================
-$androidDev = (& adb devices 2>$null |
+$androidDev = (& adb devices 2>&1 |
     Select-String "emulator.*device$" |
     Select-Object -First 1) -replace "`t.*", ""
 if (-not $androidDev) { $androidDev = "not started" }
