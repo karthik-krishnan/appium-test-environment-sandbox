@@ -97,7 +97,10 @@ Write-Ok "Node.js $(node --version)"
 $sdkCandidates = @(
     $env:ANDROID_HOME,
     "$env:LOCALAPPDATA\Android\Sdk",
-    "$env:USERPROFILE\AppData\Local\Android\Sdk"
+    "$env:USERPROFILE\AppData\Local\Android\Sdk",
+    "C:\sdk",
+    "C:\Android\Sdk",
+    "C:\Users\$env:USERNAME\AppData\Local\Android\Sdk"
 )
 
 $ANDROID_HOME = $null
