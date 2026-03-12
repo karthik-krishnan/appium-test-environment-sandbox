@@ -18,7 +18,7 @@ param(
     [string]$Command = ""
 )
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 
 $APPIUM_PORT  = if ($env:APPIUM_PORT) { $env:APPIUM_PORT } else { "4723" }
 $PID_FILE     = "$env:TEMP\appium-local-pids.txt"
