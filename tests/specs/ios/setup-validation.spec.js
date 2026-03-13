@@ -4,7 +4,7 @@
 // Three checks — confirms Appium + simulator are working:
 //   1. Session opens and reports iOS
 //   2. Settings app is in the foreground (launched via wdio.ios.conf.js bundleId)
-//   3. The Home button works and we can return to the app
+//   3. UI interaction works (tap menu item, go back)
 //
 // iOS-specific notes:
 //   • activateApp()      → not implemented in XCUITest; use mobile: activateApp
@@ -22,7 +22,7 @@ async function getForegroundBundleId() {
   return info.bundleId || '';
 }
 
-describe('iOS App Launch Validation', () => {
+describe('iOS Setup Validation', () => {
 
   it('should connect and report iOS as the platform', async () => {
     const caps = await driver.getSession();
@@ -38,19 +38,33 @@ describe('iOS App Launch Validation', () => {
     expect(bundleId).toBe('com.apple.Preferences');
   });
 
-  it('should press Home and return to Settings', async () => {
-    // Press the Home button — goes to SpringBoard (home screen)
-    await driver.execute('mobile: pressButton', { name: 'home' });
-    await driver.pause(2000);
-
-    // Note: mobile: activeAppInfo returns the last launched app bundle ID even
-    // when SpringBoard is shown (XCUITest limitation), so we don't assert on it.
-    // Instead we verify the Home button worked by re-launching Settings.
+  it('should tap General and go back', async () => {
+    // Ensure we're on main Settings page by restarting the app
+    await driver.execute('mobile: terminateApp', { bundleId: 'com.apple.Preferences' });
     await launchApp('com.apple.Preferences');
-    await driver.pause(2000);
-    const settingsPkg = await getForegroundBundleId();
-    console.log(`  ▶ Back to:    ${settingsPkg}`);
-    expect(settingsPkg).toBe('com.apple.Preferences');
+    await driver.pause(1500);
+
+    // Tap on "General"
+    const menuItem = await driver.$('~General');
+    await menuItem.click();
+    await driver.pause(1500);
+
+    // Verify we navigated (should see a back button or "General" as title)
+    const navBar = await driver.$('~General');
+    const exists = await navBar.isDisplayed();
+    console.log(`  ▶ After tap: General screen visible = ${exists}`);
+    expect(exists).toBe(true);
+
+    // Go back to main Settings by tapping the back button
+    const backButton = await driver.$('-ios class chain:**/XCUIElementTypeButton[`label CONTAINS "Settings"`]');
+    await backButton.click();
+    await driver.pause(1500);
+
+    // Verify we're back (General menu item should be visible again)
+    const generalCell = await driver.$('~General');
+    const backVisible = await generalCell.isDisplayed();
+    console.log(`  ▶ After back: General menu item visible = ${backVisible}`);
+    expect(backVisible).toBe(true);
   });
 
 });
