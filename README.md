@@ -1,6 +1,12 @@
-# Mobile Test Environment
+# Mobile Test Automation Framework
 
-Local setup for running Appium tests against an **Android emulator** and **iOS Simulator**. A single script starts everything; two commands run the tests.
+An end-to-end mobile test automation setup using **Appium** and **WebdriverIO**, covering local development on macOS and Windows, and a full CI pipeline with cloud infrastructure.
+
+**What's included:**
+- One-command local setup for Android emulator + iOS Simulator (macOS) or Android only (Windows)
+- Appium test suites for Android and iOS
+- CI pipeline: Android on GCP Compute Engine, iOS on GitHub-hosted macOS runners
+- Infrastructure-as-code script to provision and register the GCP Android runner
 
 > **iOS Simulator is macOS only.** On Windows, only Android tests are supported.
 
