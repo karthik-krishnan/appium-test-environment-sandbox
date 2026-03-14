@@ -13,7 +13,10 @@
 set -euo pipefail
 
 APPIUM_PORT="${APPIUM_PORT:-4723}"
-PID_FILE="/tmp/appium-local.pids"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LOG_DIR="${SCRIPT_DIR}/logs"
+mkdir -p "${LOG_DIR}"
+PID_FILE="${LOG_DIR}/appium-local.pids"
 AVD_NAME="AppiumTestDevice"
 ANDROID_API="36"
 ANDROID_SYSTEM_IMAGE="system-images;android-${ANDROID_API};google_apis;arm64-v8a"
@@ -152,7 +155,7 @@ else
     -no-boot-anim \
     -no-snapshot-save \
     -gpu host \
-    > /tmp/android-emulator.log 2>&1 &
+    > "${LOG_DIR}/android-emulator.log" 2>&1 &
   echo "$!" >> "${PID_FILE}"
 
   echo -n "      Waiting for boot"
@@ -160,7 +163,7 @@ else
   until [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; do
     if [ "${ELAPSED}" -ge "${MAX}" ]; then
       err "Android emulator did not boot within 5 minutes."
-      info "Check /tmp/android-emulator.log for details."
+      info "Check logs/android-emulator.log for details."
       exit 1
     fi
     echo -n "."; sleep 5; ELAPSED=$((ELAPSED + 5))
@@ -267,7 +270,7 @@ else
     --base-path / \
     --relaxed-security \
     --log-timestamp \
-    > /tmp/appium.log 2>&1 &
+    > "${LOG_DIR}/appium.log" 2>&1 &
   echo "$!" >> "${PID_FILE}"
 
   echo -n "      Starting Appium"
@@ -275,7 +278,7 @@ else
   until curl -sf "http://localhost:${APPIUM_PORT}/status" 2>/dev/null | grep -q '"ready":true'; do
     if [ "${ELAPSED}" -ge "${MAX}" ]; then
       err "Appium failed to start."
-      info "Check /tmp/appium.log for details."
+      info "Check logs/appium.log for details."
       exit 1
     fi
     echo -n "."; sleep 2; ELAPSED=$((ELAPSED + 2))

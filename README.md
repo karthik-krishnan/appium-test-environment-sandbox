@@ -4,13 +4,26 @@ An end-to-end mobile test automation setup using **Appium** and **WebdriverIO**,
 
 **What's included:**
 - One-command local setup for Android emulator + iOS Simulator (macOS) or Android only (Windows)
-- Appium test suites for Android and iOS
+- Sample Appium test suites for Android and iOS (placeholder specs — replace with your own)
 - CI pipeline: Android on a self-hosted Linux runner, iOS on GitHub-hosted macOS runners
 - Infrastructure-as-code scripts to provision and register an Android runner on GCP, AWS, or Azure
 
 > **iOS Simulator is macOS only.** On Windows, only Android tests are supported.
 
 > **Windows requires a native installation.** The Android Emulator needs hardware virtualisation (SVM/Hyper-V) which is not available inside virtual machines (UTM, VirtualBox, VMware, etc.). Run this on a physical Windows machine only.
+
+---
+
+## Get Started
+
+Clone the repo:
+
+```bash
+git clone https://github.com/karthik-krishnan/mobile-test-automation-starter.git
+cd mobile-test-automation-starter
+```
+
+Then install the prerequisites for your OS below.
 
 ---
 
@@ -82,16 +95,10 @@ When prompted, type `Y` and press Enter. You only need to do this once — it al
 bash local-setup.sh
 ```
 
-**Windows (PowerShell — open as Administrator, navigate to the repo folder first):**
-```powershell
-.\local-setup.ps1
-```
-
-> Note: iOS Simulator is macOS only. The Windows script runs Android only.
-
-To navigate to the repo folder in PowerShell, use `cd` followed by the path, for example:
+**Windows (open PowerShell as Administrator, navigate to the repo folder first):**
 ```powershell
 cd C:\Users\YourName\Documents\mobile-test-automation-starter
+.\local-setup.ps1
 ```
 
 This will:
@@ -144,7 +151,7 @@ Each sample suite runs 3 checks:
 
 1. Appium connects to the device and reports the correct platform
 2. The Settings app launches successfully
-3. A basic UI interaction works (tap a menu item and go back)
+3. A basic UI interaction works (Android: verifies app foreground state; iOS: taps a menu item and goes back)
 
 ---
 
@@ -168,12 +175,12 @@ This kills the Appium server and any emulator/simulator processes started by the
 
 **Appium won't start or tests can't connect:**
 ```bash
-cat /tmp/appium.log
+cat logs/appium.log
 ```
 
 **Android emulator won't boot:**
 ```bash
-cat /tmp/android-emulator.log
+cat logs/android-emulator.log
 ```
 
 **Check what's currently running:**
@@ -313,8 +320,7 @@ The script installs the Android SDK, emulator, Node.js, Appium, and the GitHub A
 
 GitHub repo → **Settings** → **Actions** → **Runners**
 
-You should see one runner with status **Idle**:
-- `appium-android-gcp-*` (labels: `self-hosted`, `linux`, `appium-android`)
+You should see one runner with status **Idle** and labels: `self-hosted`, `linux`, `appium-android`.
 
 If the runner shows **Offline**, SSH into the instance and check the service:
 
