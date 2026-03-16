@@ -214,16 +214,17 @@ Gives you a live view of just the Android emulator screen. Lighter weight, no de
 # Install a virtual display and VNC server
 sudo apt-get install -y xvfb x11vnc
 
-# Start a virtual display
+# Start a virtual display and wait until it is ready before continuing
 Xvfb :1 -screen 0 1280x800x24 &
+sleep 2
 export DISPLAY=:1
 
-# Start the emulator on the virtual display (remove -no-window from the usual command)
+# Start the emulator on the virtual display (without -no-window so it renders)
 export ANDROID_HOME="$HOME/android-sdk"
 export PATH="$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$PATH"
 nohup emulator -avd CIDevice -no-audio -no-boot-anim -no-snapshot-save -accel on > ~/emulator.log 2>&1 &
 
-# Start VNC server (no password for simplicity — restrict via firewall instead)
+# Start VNC server — x11vnc must run after Xvfb is up (the sleep above ensures this)
 x11vnc -display :1 -forever -nopw -bg
 ```
 
