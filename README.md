@@ -347,7 +347,10 @@ Select the platform to test: `android`, `ios`, or `both`.
 | Android (GCP) | n2-standard-4 (~15 min @ ~$0.19/hr) | ~$0.01 |
 | Android (AWS) | m5.xlarge (~15 min @ ~$0.19/hr) | ~$0.01 |
 | Android (Azure) | Standard_D4s_v3 (~15 min @ ~$0.19/hr) | ~$0.01 |
-| iOS | GitHub-hosted macOS (public repo) | **Free** |
+| iOS (public repo) | GitHub-hosted macOS | **Free** |
+| iOS (private repo) | GitHub-hosted macOS (~15 min @ ~$0.08/min) | ~$1.20 |
+
+> GitHub charges ~$0.08/min for macOS runners on private repos. See [GitHub's billing docs](https://docs.github.com/en/billing/managing-billing-for-your-products/managing-billing-for-github-actions/about-billing-for-github-actions) for current rates and any free tier included in your plan.
 
 > Stop the VM between runs to avoid idle charges:
 > - GCP: `gcloud compute instances stop appium-android-runner --zone=us-central1-a`
