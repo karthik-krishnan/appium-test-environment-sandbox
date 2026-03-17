@@ -156,15 +156,20 @@ curl -sL \
 tar xzf runner.tar.gz
 rm runner.tar.gz
 
+# Remove existing local runner config if present (safe to re-run)
+if [ -f ".runner" ]; then
+  sudo ./svc.sh stop 2>/dev/null || true
+  sudo ./svc.sh uninstall 2>/dev/null || true
+  ./config.sh remove --token "$RUNNER_TOKEN" --unattended 2>/dev/null || true
+fi
+
 # Configure with labels that match ci.yml runs-on
-# --replace allows re-running the script if the runner already exists
 ./config.sh \
   --url "$GITHUB_REPO" \
   --token "$RUNNER_TOKEN" \
   --name "gcp-$(hostname -s)" \
   --labels "self-hosted,linux,appium-android" \
   --runnergroup "Default" \
-  --replace \
   --unattended
 
 ok "Runner configured"

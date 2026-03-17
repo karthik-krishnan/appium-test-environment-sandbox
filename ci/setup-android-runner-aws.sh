@@ -159,13 +159,18 @@ curl -sL \
 tar xzf runner.tar.gz
 rm runner.tar.gz
 
+if [ -f ".runner" ]; then
+  sudo ./svc.sh stop 2>/dev/null || true
+  sudo ./svc.sh uninstall 2>/dev/null || true
+  ./config.sh remove --token "$RUNNER_TOKEN" --unattended 2>/dev/null || true
+fi
+
 ./config.sh \
   --url "$GITHUB_REPO" \
   --token "$RUNNER_TOKEN" \
   --name "aws-$(hostname -s)" \
   --labels "self-hosted,linux,appium-android" \
   --runnergroup "Default" \
-  --replace \
   --unattended
 
 ok "Runner configured"
