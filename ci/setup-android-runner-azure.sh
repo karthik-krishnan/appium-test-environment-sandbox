@@ -137,7 +137,11 @@ info "Step 4/6 — Appium + UIAutomator2 driver"
 # =============================================================================
 sudo npm install -g appium --silent
 export APPIUM_HOME="$HOME/.appium"
-appium driver install uiautomator2 2>&1 | tail -3
+if appium driver list --installed 2>/dev/null | grep -q uiautomator2; then
+  ok "uiautomator2 driver already installed — skipping"
+else
+  appium driver install uiautomator2 2>&1 | tail -3
+fi
 ok "Appium $(appium --version) with uiautomator2 driver installed"
 
 # =============================================================================
@@ -165,8 +169,9 @@ rm runner.tar.gz
 ./config.sh \
   --url "$GITHUB_REPO" \
   --token "$RUNNER_TOKEN" \
-  --name "appium-android-azure-$(hostname -s)" \
+  --name "azure-$(hostname -s)" \
   --labels "self-hosted,linux,appium-android" \
+  --replace \
   --runnergroup "Default" \
   --unattended
 
@@ -185,7 +190,7 @@ echo -e "\033[0;32m╔═══════════════════�
 echo -e "\033[0;32m║   ✅  Azure Android runner setup complete!       ║\033[0m"
 echo -e "\033[0;32m╚══════════════════════════════════════════════════╝\033[0m"
 echo ""
-echo "  Runner registered: appium-android-azure-$(hostname -s)"
+echo "  Runner registered: azure-$(hostname -s)"
 echo "  Labels:            self-hosted, linux, appium-android"
 echo ""
 echo "  Verify it's online:"

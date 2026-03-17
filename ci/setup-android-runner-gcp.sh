@@ -130,7 +130,11 @@ info "Step 4/6 — Appium + UIAutomator2 driver"
 # =============================================================================
 sudo npm install -g appium --silent
 export APPIUM_HOME="$HOME/.appium"
-appium driver install uiautomator2 2>&1 | tail -3
+if appium driver list --installed 2>/dev/null | grep -q uiautomator2; then
+  ok "uiautomator2 driver already installed — skipping"
+else
+  appium driver install uiautomator2 2>&1 | tail -3
+fi
 ok "Appium $(appium --version) with uiautomator2 driver installed"
 
 # =============================================================================
@@ -157,12 +161,14 @@ tar xzf runner.tar.gz
 rm runner.tar.gz
 
 # Configure with labels that match ci.yml runs-on
+# --replace allows re-running the script if the runner already exists
 ./config.sh \
   --url "$GITHUB_REPO" \
   --token "$RUNNER_TOKEN" \
-  --name "appium-android-gcp-$(hostname -s)" \
+  --name "gcp-$(hostname -s)" \
   --labels "self-hosted,linux,appium-android" \
   --runnergroup "Default" \
+  --replace \
   --unattended
 
 ok "Runner configured"
@@ -180,7 +186,7 @@ echo -e "\033[0;32m╔═══════════════════�
 echo -e "\033[0;32m║   ✅  GCP Android runner setup complete!         ║\033[0m"
 echo -e "\033[0;32m╚══════════════════════════════════════════════════╝\033[0m"
 echo ""
-echo "  Runner registered: appium-android-gcp-$(hostname -s)"
+echo "  Runner registered: gcp-$(hostname -s)"
 echo "  Labels:            self-hosted, linux, appium-android"
 echo ""
 echo "  Verify it's online:"
