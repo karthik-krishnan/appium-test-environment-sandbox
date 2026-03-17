@@ -137,11 +137,7 @@ info "Step 4/6 — Appium + UIAutomator2 driver"
 # =============================================================================
 sudo npm install -g appium --silent
 export APPIUM_HOME="$HOME/.appium"
-if appium driver list --installed 2>/dev/null | grep -q uiautomator2; then
-  ok "uiautomator2 driver already installed — skipping"
-else
-  appium driver install uiautomator2 2>&1 | tail -3
-fi
+appium driver install uiautomator2 2>&1 | grep -v "already installed" | tail -3 || true
 ok "Appium $(appium --version) with uiautomator2 driver installed"
 
 # =============================================================================
