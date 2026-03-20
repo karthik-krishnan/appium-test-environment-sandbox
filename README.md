@@ -1,7 +1,5 @@
 # Mobile Test Automation Starter
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
 An end-to-end mobile test automation setup using **Appium** and **WebdriverIO**, covering local development on macOS and Windows, and a full CI pipeline with cloud infrastructure.
 
 **What's included:**
@@ -481,4 +479,10 @@ mobile-test-automation-starter/
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+MIT © Karthik Krishnan
+
+---
+
+**Project metadata**
+
+Mobile Test Automation Starter · appium · webdriverio · android · ios · emulator · simulator · github actions · ci · gcp · aws · azure · self-hosted runner · uiautomator2 · xcuitest
