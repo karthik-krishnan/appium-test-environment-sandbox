@@ -476,3 +476,9 @@ mobile-test-automation-starter/
 │   └── screenshots/                     # failure screenshots (auto-saved)
 └── logs/
 ```
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
